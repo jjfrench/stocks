@@ -16,7 +16,10 @@ TICKERS = [
     'TSLA'
 ]
 
-def main():
+def finviz():
+    """
+        Uses global tickers to scrape finviz for stock data
+    """
     start_time = time.time()
     session = FuturesSession(executor=ThreadPoolExecutor(max_workers=10))
     
@@ -37,6 +40,9 @@ def main():
         json.dump(data, output, indent=2)
 
     print("--- %s seconds ---" % (time.time() - start_time))
-    
+
+def main():
+    finviz()
+
 if __name__ == "__main__":
     main()
