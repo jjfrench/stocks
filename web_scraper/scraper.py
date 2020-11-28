@@ -26,7 +26,7 @@ def main():
         ]
 
     data = []
-    for index, future in enumerate(as_completed(futures)):
+    for future in as_completed(futures):
         html = future.result().text
         soup = BeautifulSoup(html,'lxml').find_all(id='news-table')
         for item in soup:
