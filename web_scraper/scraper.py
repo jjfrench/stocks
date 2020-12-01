@@ -1,11 +1,12 @@
-
 from requests import get
 from requests_futures.sessions import FuturesSession
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from bs4 import BeautifulSoup
 from bs2json import bs2json
+from analyze import *
 import time
 import json
+
 
 TICKERS = [
     'BEEM',
@@ -19,7 +20,6 @@ def finviz():
     """
         Uses global tickers to scrape finviz for stock data
     """
-    start_time = time.time()
     session = FuturesSession(executor=ThreadPoolExecutor(max_workers=10))
     
     # futures = [
@@ -32,7 +32,7 @@ def finviz():
         future.tick = TICKER
         futures.append(future)
 
-    data = {'stocks': []}
+    data = {}
     for future in as_completed(futures):
         print(future.tick)
         html = future.result().text
@@ -40,14 +40,19 @@ def finviz():
         for item in soup:
             soup = item.find_all('a')
             _json = bs2json().convertAll(soup)
-            data['stocks'].append({f'{future.tick}':_json})
-    with open('data.txt', 'w') as output:
-        json.dump(data, output, indent=2)
+            data[future.tick] = []
+            for link in _json:
+                data[future.tick].append(link['text'])
+                # print(link['text'])
 
-    print('--- %s seconds ---' % (time.time() - start_time))
+    with open('data.json', 'w') as output:
+        json.dump(data, output, indent=2)
+    
 
 def main():
+    start_time = time.time()
     finviz()
+    print('--- %s seconds ---' % (time.time() - start_time))
 
 if __name__ == '__main__':
     main()
