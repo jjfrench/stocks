@@ -22,10 +22,6 @@ def finviz():
     """
     session = FuturesSession(executor=ThreadPoolExecutor(max_workers=10))
     
-    # futures = [
-    #     session.get(f'https://www.finviz.com/quote.ashx?t={TICKER}', headers={'user-agent': 'scrapper'}) 
-    #         for TICKER in TICKERS
-    #     ]
     futures = []
     for TICKER in TICKERS:
         future = session.get(f'https://www.finviz.com/quote.ashx?t={TICKER}', headers={'user-agent': 'scrapper'})
@@ -40,14 +36,18 @@ def finviz():
         for item in soup:
             soup = item.find_all('a')
             _json = bs2json().convertAll(soup)
+
             data[future.tick] = []
             for link in _json:
-                data[future.tick].append(link['text'])
-                # print(link['text'])
+                data[future.tick].append({
+                    'text':link['text'],
+                    'href':link['attributes']['href']
+                })
 
     with open('data.json', 'w') as output:
         json.dump(data, output, indent=2)
-    
+    with open('data.txt', 'w') as output:
+        json.dump(_json, output, indent=2)
 
 def main():
     start_time = time.time()
