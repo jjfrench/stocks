@@ -35,24 +35,27 @@ def futures(href, extension=None, workers=10):
             futures.append(future)
     # Multiple Links no extensions
     else:
-        for link in href:
-            future = session.get(link, headers={'user-agent': 'scrapper'})
-            future.info = None
-            futures.append(future)
+        future = session.get(href, headers={'user-agent': 'scrapper'})
+        future.info = href
+        futures.append(future)
     return as_completed(futures)
 
 def dataset(data, TICKER):
     for request in data[TICKER]:
-            _futures = futures(request['href'], workers=25)
-            request['Complete'] = 'done'
+        _futures = futures(request['href'], workers=25)
+        print(_futures)
+    for future in _futures:
+        # print(future.info)
+        html = future.result().text
+        soup = BeautifulSoup(html,'lxml').find_all(id='module-article')
+        # print(soup)
 
 def finviz():
     """
         Uses global tickers to scrape finviz for stock data
     """
     _futures = futures('https://www.finviz.com/quote.ashx?t=', extension=TICKERS, workers=10)
-
-    data = {} # data storage
+    data = {} # data 
     for future in _futures:
         print(future.info)
         html = future.result().text
@@ -67,7 +70,10 @@ def finviz():
                     'href':link['attributes']['href']
                 })
     for TICKER in data:
-        dataset(data, TICKER)
+        x = threading.Thread(target=dataset, args=(data, TICKER))
+        x.start()
+    
+    print(threading.active_count())
 
     with open('data.json', 'w') as output:
         json.dump(data, output, indent=2)
@@ -78,6 +84,5 @@ def main():
     start_time = time.time()
     finviz()
     print('--- %s seconds ---' % (time.time() - start_time))
-
 if __name__ == '__main__':
     main()
