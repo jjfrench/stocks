@@ -43,12 +43,15 @@ def futures(href, extension=None, workers=10):
 def dataset(data, TICKER):
     for request in data[TICKER]:
         _futures = futures(request['href'], workers=25)
-        print(_futures)
-    for future in _futures:
-        # print(future.info)
-        html = future.result().text
-        soup = BeautifulSoup(html,'lxml').find_all(id='module-article')
-        # print(soup)
+        # print(_futures)
+        for future in _futures:
+            # print(future.info)
+            html = future.result().text
+            soup = BeautifulSoup(html,'lxml').find_all('h1')
+            _json = bs2json().convertAll(soup)
+            request['body'] = _json
+    with open('data.json', 'w') as output:
+        json.dump(data, output, indent=2)
 
 def finviz():
     """
