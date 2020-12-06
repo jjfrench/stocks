@@ -41,6 +41,12 @@ def futures(href, extension=None, workers=10):
     return as_completed(futures)
 
 def dataset(data, TICKER):
+    """
+        Args:
+            data (json object):
+            TICKER (json key):
+    """
+    dataset_time = time.time()
     for request in data[TICKER]:
         _futures = futures(request['href'], workers=25)
         # print(_futures)
@@ -50,6 +56,7 @@ def dataset(data, TICKER):
             soup = BeautifulSoup(html,'lxml').find_all('h1')
             _json = bs2json().convertAll(soup)
             request['body'] = _json
+    print('--- %s seconds ---' % (time.time() - dataset_time))
     with open('data.json', 'w') as output:
         json.dump(data, output, indent=2)
 
@@ -87,5 +94,6 @@ def main():
     start_time = time.time()
     finviz()
     print('--- %s seconds ---' % (time.time() - start_time))
+
 if __name__ == '__main__':
     main()
