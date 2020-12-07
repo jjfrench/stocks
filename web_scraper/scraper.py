@@ -48,14 +48,17 @@ def dataset(data, TICKER):
     """
     dataset_time = time.time()
     for request in data[TICKER]:
-        _futures = futures(request['href'], workers=25)
+        if 'https://www.investors.com/' in request['href']:
+            pass
+        else:
+            _futures = futures(request['href'], workers=250)
         # print(_futures)
-        for future in _futures:
-            # print(future.info)
-            html = future.result().text
-            soup = BeautifulSoup(html,'lxml').find_all('h1')
-            _json = bs2json().convertAll(soup)
-            request['body'] = _json
+            for future in _futures:
+                # print(future.info)
+                html = future.result().text
+                soup = BeautifulSoup(html,'lxml').find_all('h1')
+                _json = bs2json().convertAll(soup)
+                request['body'] = _json
     print('--- %s seconds ---' % (time.time() - dataset_time))
     with open('data.json', 'w') as output:
         json.dump(data, output, indent=2)
