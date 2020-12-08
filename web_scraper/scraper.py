@@ -78,6 +78,8 @@ def finviz():
             _json = bs2json().convertAll(soup)
             data[future.info] = [] # data storage
             for link in _json:
+                # Read from file and check existing data
+                # to reduce time
                 data[future.info].append({
                     'text':link['text'],
                     'href':link['attributes']['href']
