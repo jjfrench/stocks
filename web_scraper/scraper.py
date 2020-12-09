@@ -40,12 +40,13 @@ def futures(href, extension=None, workers=10):
         futures.append(future)
     return as_completed(futures)
 
-def dataset(data, TICKER):
+def dataset(data, datajson, TICKER):
     """
         Args:
             data (json object):
             TICKER (json key):
     """
+    # with open('data.json', 'w') as output:
     dataset_time = time.time()
     for request in data[TICKER]:
         if 'https://www.investors.com/' in request['href']:
@@ -60,10 +61,10 @@ def dataset(data, TICKER):
                 _json = bs2json().convertAll(soup)
                 request['body'] = _json
     print('--- %s seconds ---' % (time.time() - dataset_time))
-    with open('data.json', 'w') as output:
-        json.dump(data, output, indent=2)
+    # with open('data.json', 'w') as output:
+    json.dump(data, datajson, indent=2)
 
-def finviz():
+def finviz(datajson):
     """
         Uses global tickers to scrape finviz for stock data
     """
@@ -80,24 +81,27 @@ def finviz():
             for link in _json:
                 # Read from file and check existing data
                 # to reduce time
-                data[future.info].append({
-                    'text':link['text'],
-                    'href':link['attributes']['href']
-                })
+                for item in datajson[future.info]:
+                    if link['text'] in item['text']:
+                        pass
+                    else:
+                        data[future.info].append({
+                            'text':link['text'],
+                            'href':link['attributes']['href']
+                        })
     for TICKER in data:
-        x = threading.Thread(target=dataset, args=(data, TICKER))
+        x = threading.Thread(target=dataset, args=(data, datajson, TICKER))
         x.start()
     
     print(threading.active_count())
-
-    with open('data.json', 'w') as output:
-        json.dump(data, output, indent=2)
-    # with open('data.txt', 'w') as output:
-    #     json.dump(_json, output, indent=2)
+    # with open('data.json', 'w') as output:
+    json.dump(data, datajson, indent=2)
 
 def main():
+    fileopen = open('data.json', 'w+')
+    datajson = json.load(fileopen)
     start_time = time.time()
-    finviz()
+    finviz(datajson)
     print('--- %s seconds ---' % (time.time() - start_time))
 
 if __name__ == '__main__':
